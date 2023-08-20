@@ -8,17 +8,18 @@ import numpy as np
 
 from src.utils import create_ancestry_matrix_from_adjacency, create_adjacency_from_ancestry, save_plot
 
-ilp_file_name = "ilp_ancst_tree"
 # ilp_solver = generate_model_and_solve_it_l1
 ilp_solver = generate_model_and_solve_it
+centroid_scaling_factor = 2
+ilp_file_name = "ilp_ancst_tree_w%d" % centroid_scaling_factor
 
 
-def solve(folder_address, trial_number, ancst_ilp_solver):
+def solve(folder_address, trial_number, ancst_ilp_solver, scaling_factor=1):
     n, k, cp, pc, bm, nr, seed = compute_parameters_from_folder_address(folder_address)
     print('Loading input trees...')
     tree_list_adjs = read_all_perturbed_trees_in_trial(folder_address, trial_number)
     ancst_matrices = [create_ancestry_matrix_from_adjacency(x) for x in tree_list_adjs]
-    a = np.mean(ancst_matrices, axis=0)
+    a = np.mean(ancst_matrices, axis=0) * scaling_factor
     print("solving ilp", time.asctime())
     ancst_matrix = ancst_ilp_solver(a)
     print("solving ilp finished", time.asctime())
@@ -40,5 +41,5 @@ for folder_address in folder_addresses:
             if check_file_exist(folder_address + "/trial%d" % i + "/%s.jpg" % ilp_file_name):
                 print("already solved")
                 continue
-            solve(folder_address, i, ilp_solver)
+            solve(folder_address, i, ilp_solver, centroid_scaling_factor)
             print("time: ", time.time() - start_time)
